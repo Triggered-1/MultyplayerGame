@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 
 public class InputManager : MonoBehaviour
 {
-	public static InputManager instance;
+	//public static InputManager instance;
 
 	private PlayerInputs controls;
 
@@ -18,18 +18,18 @@ public class InputManager : MonoBehaviour
 
 	private void Awake()
 	{
-		#region Singleton
-		if (instance == null)
-		{
-			instance = this;
-			DontDestroyOnLoad(gameObject);
-		}
-		else
-		{
-			Destroy(gameObject);
-			return;
-		}
-		#endregion
+		//#region Singleton
+		//if (instance == null)
+		//{
+		//	instance = this;
+		//	DontDestroyOnLoad(gameObject);
+		//}
+		//else
+		//{
+		//	Destroy(gameObject);
+		//	return;
+		//}
+		//#endregion
 
 		controls = new PlayerInputs();
 		#region Assign Inputs

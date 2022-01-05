@@ -7,6 +7,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
+using Photon.Pun;
 
 [RequireComponent(typeof(CharacterStats))]
 public class PlayerController : MonoBehaviour
@@ -19,7 +20,7 @@ public class PlayerController : MonoBehaviour
     public GameObject InventoryUI;
     private CharacterStats myStats;
     private int attackCount = 0;
-
+    private PhotonView view;
 
 
     [Header("Movement")]
@@ -84,10 +85,12 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
+        view = GetComponent<PhotonView>();
         playerInputs.Movement.Jump.performed += _ => Jump();
         playerInputs.Movement.Shoot.performed += _ => Attack();
         playerInputs.Movement.Dash.started += _ => StartCoroutine(Dash());
         playerInputs.Movement.Interact.performed += _ => UseInventory();
+
         myStats = GetComponent<CharacterStats>();
 
 
@@ -97,36 +100,39 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        Aim();
-        SpriteFlip();
-        Move();
-        UpdateDashUI();
-        //jumpInput = inputManager.OnJumpPressed;
-
-        isGrounded = Physics2D.OverlapCircle((Vector2)transform.position + bottomOffset, checkRadius, groundLayer);
-
-        //if (EventSystem.current.IsPointerOverGameObject())
-        //{
-        //    return;
-        //}
-
-        if (rb.velocity.y < 0)
+        if (view.IsMine)
         {
-            rb.velocity += Vector2.up * Physics2D.gravity.y * (fallMultiplier - 1) * Time.deltaTime;
-        }
-        else if (rb.velocity.y > 0 && !jumpInput)
-        {
-            rb.velocity += Vector2.up * Physics2D.gravity.y * (lowJumpMultiplier - 1) * Time.deltaTime;
-        }
+            Aim();
+            SpriteFlip();
+            Move();
+            //UpdateDashUI();
+            //jumpInput = inputManager.OnJumpPressed;
 
-        if (isGrounded)
-        {
-            currentDashes = maxDashes;
-            canDash = true;
-        }
-        if (currentDashes <= 0)
-        {
-            canDash = false;
+            isGrounded = Physics2D.OverlapCircle((Vector2)transform.position + bottomOffset, checkRadius, groundLayer);
+
+            //if (EventSystem.current.IsPointerOverGameObject())
+            //{
+            //    return;
+            //}
+
+            if (rb.velocity.y < 0)
+            {
+                rb.velocity += Vector2.up * Physics2D.gravity.y * (fallMultiplier - 1) * Time.deltaTime;
+            }
+            else if (rb.velocity.y > 0 && !jumpInput)
+            {
+                rb.velocity += Vector2.up * Physics2D.gravity.y * (lowJumpMultiplier - 1) * Time.deltaTime;
+            }
+
+            if (isGrounded)
+            {
+                currentDashes = maxDashes;
+                canDash = true;
+            }
+            if (currentDashes <= 0)
+            {
+                canDash = false;
+            }
         }
     }
 
