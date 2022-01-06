@@ -4,8 +4,9 @@ using UnityEngine;
 
 public class PlayerStats : CharacterStats
 {
+
     // Start is called before the first frame update
-    void Start()
+    public override void Start()
     {
         EquipmentManager.instance.onEquipmentChanged += OnEquipmentChanged;
     }

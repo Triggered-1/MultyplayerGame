@@ -8,9 +8,10 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 using Photon.Pun;
+using Cinemachine;
 
 [RequireComponent(typeof(CharacterStats))]
-public class PlayerController : MonoBehaviour
+public class PlayerController : MonoBehaviour , IPunObservable
 {
     private PlayerInputs playerInputs;
     private Rigidbody2D rb;
@@ -86,56 +87,85 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         view = GetComponent<PhotonView>();
-        playerInputs.Movement.Jump.performed += _ => Jump();
-        playerInputs.Movement.Shoot.performed += _ => Attack();
-        playerInputs.Movement.Dash.started += _ => StartCoroutine(Dash());
-        playerInputs.Movement.Interact.performed += _ => UseInventory();
-
+        if (!view.IsMine)
+        {
+            Destroy(GetComponentInChildren<CinemachineVirtualCamera>().gameObject);
+            Destroy(GetComponent<BoxCollider2D>());
+            Destroy(rb);
+            //Destroy(aimDirection.gameObject);
+            aimDirection.gameObject.SetActive(false);
+        }
+        if (view.IsMine)
+        {
+            playerInputs.Movement.Jump.performed += _ => Jump();
+            playerInputs.Movement.Shoot.performed += _ => Attack();
+            playerInputs.Movement.Dash.started += _ => StartCoroutine(Dash());
+            playerInputs.Movement.Interact.performed += _ => UseInventory();
+        }
         myStats = GetComponent<CharacterStats>();
-
-
+        AddObservable();
         currentDashes = maxDashes;
         currentHealth = maxHealth;
     }
 
     void Update()
     {
-        if (view.IsMine)
+        if (!view.IsMine)
         {
-            Aim();
-            SpriteFlip();
-            Move();
-            //UpdateDashUI();
-            //jumpInput = inputManager.OnJumpPressed;
-
-            isGrounded = Physics2D.OverlapCircle((Vector2)transform.position + bottomOffset, checkRadius, groundLayer);
-
-            //if (EventSystem.current.IsPointerOverGameObject())
-            //{
-            //    return;
-            //}
-
-            if (rb.velocity.y < 0)
-            {
-                rb.velocity += Vector2.up * Physics2D.gravity.y * (fallMultiplier - 1) * Time.deltaTime;
-            }
-            else if (rb.velocity.y > 0 && !jumpInput)
-            {
-                rb.velocity += Vector2.up * Physics2D.gravity.y * (lowJumpMultiplier - 1) * Time.deltaTime;
-            }
-
-            if (isGrounded)
-            {
-                currentDashes = maxDashes;
-                canDash = true;
-            }
-            if (currentDashes <= 0)
-            {
-                canDash = false;
-            }
+            return;
         }
+        Aim();
+        SpriteFlip();
+        Move();
+        //UpdateDashUI();
+        //jumpInput = inputManager.OnJumpPressed;
+
+        isGrounded = Physics2D.OverlapCircle((Vector2)transform.position + bottomOffset, checkRadius, groundLayer);
+
+        //if (EventSystem.current.IsPointerOverGameObject())
+        //{
+        //    return;
+        //}
+
+        if (rb.velocity.y < 0)
+        {
+            rb.velocity += Vector2.up * Physics2D.gravity.y * (fallMultiplier - 1) * Time.deltaTime;
+        }
+        else if (rb.velocity.y > 0 && !jumpInput)
+        {
+            rb.velocity += Vector2.up * Physics2D.gravity.y * (lowJumpMultiplier - 1) * Time.deltaTime;
+        }
+
+        if (isGrounded)
+        {
+            currentDashes = maxDashes;
+            canDash = true;
+        }
+        if (currentDashes <= 0)
+        {
+            canDash = false;
+        }
+
     }
 
+    private void AddObservable()
+    {
+        if (!view.ObservedComponents.Contains(this))
+        {
+            view.ObservedComponents.Add(this);
+        }
+    }
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if (stream.IsWriting)
+        {
+            stream.SendNext(sr.flipX);
+        }
+        else
+        {
+            sr.flipX = (bool)stream.ReceiveNext();
+        }
+    }
     private void UseInventory()
     {
         InventoryUI.SetActive(!InventoryUI.activeSelf);
@@ -249,14 +279,6 @@ public class PlayerController : MonoBehaviour
                 attackCount++;
                 enemy.GetComponent<CharacterStats>().TakeDamage(CalculateDamage());
             }
-            //if (enemy.gameObject.CompareTag("RangedEnemy"))
-            //{
-            //    enemy.GetComponent<CharacterStats>().TakeDamage(CalculateDamage());
-            //}
-            //if (enemy.gameObject.CompareTag("GhostEnemy"))
-            //{
-            //    enemy.GetComponent<CharacterStats>().TakeDamage(CalculateDamage());
-            //}
         }
     }
 
