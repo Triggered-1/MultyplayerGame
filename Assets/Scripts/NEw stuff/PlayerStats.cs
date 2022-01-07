@@ -4,11 +4,13 @@ using UnityEngine;
 
 public class PlayerStats : CharacterStats
 {
-
+    private EquipmentManager equipmentManager;
     // Start is called before the first frame update
     public override void Start()
     {
-        EquipmentManager.instance.onEquipmentChanged += OnEquipmentChanged;
+        //EquipmentManager.instance.onEquipmentChanged += OnEquipmentChanged;
+        equipmentManager = GetComponent<EquipmentManager>();
+        equipmentManager.onEquipmentChanged += OnEquipmentChanged;
     }
 
     private void OnEquipmentChanged(Equipment newItem, Equipment oldItem)

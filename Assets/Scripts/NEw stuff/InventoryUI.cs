@@ -5,17 +5,23 @@ using UnityEngine;
 public class InventoryUI : MonoBehaviour
 {
     public Transform itemsParent;
+    public Transform EquipmentSlotParent;
     public GameObject inventoryUI;
-    InventorySlot[] slots;
-    Inventory inventory;
+    private InventorySlot[] slots;
+    private EquipmentSlot[] equipmentSlots;
+    private Inventory inventory;
+    private EquipmentManager equipmentManager;
 
     // Start is called before the first frame update
     void Start()
     {
-        inventory = Inventory.instance;
+        //inventory = Inventory.instance;
+        equipmentManager = GetComponentInParent<EquipmentManager>();
+        inventory = GetComponentInParent<Inventory>();
         inventory.onItemChangedCallback += UpdateUI;
-
+        equipmentManager.onEquipmentChangedUI += UpdateEquipmentUI;
         slots = itemsParent.GetComponentsInChildren<InventorySlot>();
+        equipmentSlots = EquipmentSlotParent.GetComponentsInChildren<EquipmentSlot>();
     }
 
     // Update is called once per frame
@@ -39,6 +45,16 @@ public class InventoryUI : MonoBehaviour
                 slots[i].ClearSlot();
             }
         }
+    }
 
+    //Displays the Equipt Item on the UI
+    void UpdateEquipmentUI(int slotIndex)
+    {
+        Debug.Log("updating equipment ui");
+
+        if (slotIndex < inventory.items.Count)
+        {
+            equipmentSlots[slotIndex].DisplayItem(inventory.items[slotIndex]);
+        }
     }
 }

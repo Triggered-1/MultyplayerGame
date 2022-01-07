@@ -8,7 +8,13 @@ public class InventorySlot : MonoBehaviour
     Item item;
     public Image icon;
     public Button removeButton;
-
+    private Inventory inventory;
+    private EquipmentManager equipmentManager;
+    private void Start()
+    {
+        inventory = GetComponentInParent<Inventory>();
+        equipmentManager = GetComponentInParent<EquipmentManager>();
+    }
     public void AddItem(Item newItem)
     {
         item = newItem;
@@ -29,14 +35,15 @@ public class InventorySlot : MonoBehaviour
 
     public void OnRemoveButton()
     {
-        Inventory.instance.Remove(item);
+        //Inventory.instance.Remove(item);
+        inventory.Remove(item);
     }
 
     public void UseItem()
     {
         if (item != null)
         {
-            item.Use();
+            item.Use(inventory,equipmentManager);
         }
     }
 }

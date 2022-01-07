@@ -6,21 +6,22 @@ using UnityEngine;
 public class Equipment : Item
 {
 
-    public EquipmentSlot equipmentSlot;
+    public EquipmentSlotEnum equipmentSlot;
 
     public float armorModifier;
     public float damageModifier;
 
-    public override void Use()
+    public override void Use(Inventory inventory,EquipmentManager equipmentManager)
     {
         base.Use();
 
-        EquipmentManager.instance.Equip(this);
-        RemoveFromInventory();
+        //EquipmentManager.instance.Equip(this);
+        equipmentManager.Equip(this);
+        RemoveFromInventory(inventory);
     }
 }
 
-public enum EquipmentSlot
+public enum EquipmentSlotEnum
 {
-    Head, Chest, Legs, Weapon, Offhand, Feet
+    Weapon, Offhand, Accessory1, Accessory2, Accessory3, Accessory4
 }

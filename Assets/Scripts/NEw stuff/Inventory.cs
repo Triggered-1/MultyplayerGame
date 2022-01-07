@@ -1,32 +1,20 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
 public class Inventory : MonoBehaviour
 {
-    #region Singelton
-    public static Inventory instance;
-
-
-    private void Awake()
-    {
-        if (instance != null)
-        {
-            Debug.LogWarning("More than one instance found !");
-            return;
-        }
-        instance = this;
-    }
-
-    #endregion
-
-
     public delegate void OnItemChanged();
     public OnItemChanged onItemChangedCallback;
+    private PhotonView view;
 
     public List<Item> items = new List<Item>();
     public int Space = 20;
-
+    private void Start()
+    {
+        view = GetComponent<PhotonView>();
+    }
 
     public bool Add(Item item)
     {

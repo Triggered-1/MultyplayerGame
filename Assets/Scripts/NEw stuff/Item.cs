@@ -14,10 +14,24 @@ public class Item : ScriptableObject
 
         Debug.Log("Using " + name);
     }
-
-    public void RemoveFromInventory()
+    public virtual void Use(Inventory inventory)
     {
-        Inventory.instance.Remove(this);
+        //Use the Item
+        //Something might happpen
+
+        Debug.Log("Using " + name);
+    }public virtual void Use(Inventory inventory,EquipmentManager equipmentManager)
+    {
+        //Use the Item
+        //Something might happpen
+
+        Debug.Log("Using " + name);
+    }
+
+    public void RemoveFromInventory(Inventory inventory)
+    {
+        //Inventory.instance.Remove(this);
+        inventory.Remove(this);
     }
 
 }

@@ -4,32 +4,36 @@ using UnityEngine;
 
 public class EquipmentManager : MonoBehaviour
 {
-    #region Singelton
-    public static EquipmentManager instance;
+    //#region Singelton
+    //public static EquipmentManager instance;
 
 
-    private void Awake()
-    {
-        if (instance != null)
-        {
-            Debug.LogWarning("More than one instance found !");
-            return;
-        }
-        instance = this;
-    }
+    //private void Awake()
+    //{
+    //    if (instance != null)
+    //    {
+    //        Debug.LogWarning("More than one instance found !");
+    //        return;
+    //    }
+    //    instance = this;
+    //}
 
-    #endregion
+    //#endregion
 
     public Equipment[] currentEquipment;
     public delegate void OnEquipmentChanged(Equipment newItem, Equipment oldItem);
     public OnEquipmentChanged onEquipmentChanged;
+    public delegate void OnEquipmentChangedUI(int slotIndex);
+    public OnEquipmentChangedUI onEquipmentChangedUI;
+
     Inventory inventory;
 
     private void Start()
     {
-        inventory = Inventory.instance;//todo change singelton
+        //inventory = Inventory.instance;//todo change singelton
+        inventory = GetComponent<Inventory>();
 
-        int numbSlots = System.Enum.GetNames(typeof(EquipmentSlot)).Length;
+        int numbSlots = System.Enum.GetNames(typeof(EquipmentSlotEnum)).Length;
         currentEquipment = new Equipment[numbSlots];
     }
 
@@ -47,6 +51,11 @@ public class EquipmentManager : MonoBehaviour
         if (onEquipmentChanged != null)
         {
             onEquipmentChanged.Invoke(newItem, oldItem);
+            
+        }
+        if (onEquipmentChangedUI != null)
+        {
+            onEquipmentChangedUI.Invoke(slotIndex);
         }
         currentEquipment[slotIndex] = newItem;
     }

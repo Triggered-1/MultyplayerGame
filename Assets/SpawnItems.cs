@@ -11,5 +11,6 @@ public class SpawnItems : MonoBehaviour
     private void Start()
     {
         PhotonNetwork.Instantiate(itemPrefab.name, spawnPos.position, Quaternion.identity);
+        PhotonNetwork.Instantiate(itemPrefab.name, spawnPos.position, Quaternion.identity);
     }
 }
