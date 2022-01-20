@@ -5,12 +5,12 @@ using UnityEngine;
 public class State
 {
     protected FiniteStateMachine StateMachine;
-    protected CharacterStats Entity;
+    protected Entity Entity;
 
     protected float startTime;
     protected string animBoolName;
 
-    public State(CharacterStats entity, FiniteStateMachine stateMachine, string animBoolName)
+    public State(Entity entity, FiniteStateMachine stateMachine, string animBoolName)
     {
         this.Entity = entity;
         this.StateMachine = stateMachine;

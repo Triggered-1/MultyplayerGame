@@ -5,7 +5,10 @@ using UnityEngine;
 public class MoveState : State
 {
     protected MoveStateData stateData;
-    public MoveState(CharacterStats entity, FiniteStateMachine stateMachine, string animBoolName,MoveStateData stateData) : base(entity, stateMachine, animBoolName)
+
+    protected bool isDetectingWall;
+    protected bool isDetectingLedge;
+    public MoveState(Entity entity, FiniteStateMachine stateMachine, string animBoolName,MoveStateData stateData) : base(entity, stateMachine, animBoolName)
     {
         this.stateData = stateData;
     }
@@ -13,6 +16,9 @@ public class MoveState : State
     public override void Enter()
     {
         base.Enter();
+        Entity.SetVelocity(stateData.movementSpeed);
+        isDetectingLedge = Entity.EdgeCheck();
+        isDetectingWall = Entity.WallCheck();
     }
 
     public override void Exit()
@@ -28,5 +34,7 @@ public class MoveState : State
     public override void PhysicsUpdate()
     {
         base.PhysicsUpdate();
+        isDetectingLedge = Entity.EdgeCheck();
+        isDetectingWall = Entity.WallCheck();
     }
 }

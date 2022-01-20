@@ -1,6 +1,6 @@
 using UnityEngine;
 using Photon.Pun;
-public class Interactable : MonoBehaviour
+public class Interactable : MonoBehaviourPun
 {
     public float radius = 3f;
 
@@ -33,10 +33,6 @@ public class Interactable : MonoBehaviour
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (!PhotonNetwork.IsMasterClient)
-            return;
-
-        PhotonView photonView = collision.GetComponent<PhotonView>();
         if (photonView != null && collision.CompareTag("Player"))
         {
             Interact(collision.GetComponent<Inventory>());

@@ -28,7 +28,7 @@ MonoBehaviour:
     AuthMode: 0
     EnableLobbyStatistics: 0
     NetworkLogging: 1
-  DevRegion: 
+  DevRegion: eu
   PunLogging: 0
   EnableSupportLogger: 0
   RunInBackground: 1
@@ -39,6 +39,19 @@ MonoBehaviour:
   - DestroySpaceship
   - Fire
   - RespawnSpaceship
+  - Start
+  - SpawnEnemy
+  - DestroyPickUp
+  - DestroyPickUpRPC
+  - DestroyEnemyRPC
+  - LoadDungeonSceneRPC
+  - CloseDoors
+  - OpenDoors
+  - CloseDoorsRPC
+  - EnterRoomRPC
+  - ExitRoomRPC
+  - OpenDoorsRPC
+  - TakeDamageRPC
   DisableAutoOpenWizard: 1
-  ShowSettings: 0
-  DevRegionSetOnce: 0
+  ShowSettings: 1
+  DevRegionSetOnce: 1

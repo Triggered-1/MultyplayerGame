@@ -1,9 +1,9 @@
+using Photon.Pun;
 using UnityEngine;
 
 public class ItemPickUp : Interactable
 {
     public Item item;
-
 
     public override void Interact(Inventory inventory)
     {
@@ -14,12 +14,17 @@ public class ItemPickUp : Interactable
 
     void PickUp(Inventory inventory)
     {
-
         Debug.Log("Picking Up " + item.name);
-        bool wasPickedUp = inventory.Add(item);//Inventory.instance.Add(item);
+        bool wasPickedUp = inventory.Add(item);
         if (wasPickedUp)
         {
-            Destroy(gameObject);
+            photonView.RPC("DestroyPickUpRPC", RpcTarget.MasterClient);
         }
+    }
+
+    [PunRPC]
+    private void DestroyPickUpRPC()
+    {
+        PhotonNetwork.Destroy(gameObject);
     }
 }

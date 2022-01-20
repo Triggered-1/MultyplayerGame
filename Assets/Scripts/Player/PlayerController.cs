@@ -11,7 +11,7 @@ using Photon.Pun;
 using Cinemachine;
 
 [RequireComponent(typeof(CharacterStats))]
-public class PlayerController : MonoBehaviour , IPunObservable
+public class PlayerController : MonoBehaviourPun, IPunObservable
 {
     private PlayerInputs playerInputs;
     private Rigidbody2D rb;
@@ -21,7 +21,6 @@ public class PlayerController : MonoBehaviour , IPunObservable
     public GameObject InventoryUI;
     private CharacterStats myStats;
     private int attackCount = 0;
-    private PhotonView view;
 
 
     [Header("Movement")]
@@ -51,6 +50,7 @@ public class PlayerController : MonoBehaviour , IPunObservable
     [SerializeField] private int maxHealth;
     [SerializeField] private Image[] healthImages;
     [SerializeField] private Sprite[] healthSprites;
+
 
     [Header("Ground Check")]
     [SerializeField] private Vector2 bottomOffset;
@@ -86,8 +86,7 @@ public class PlayerController : MonoBehaviour , IPunObservable
 
     void Start()
     {
-        view = GetComponent<PhotonView>();
-        if (!view.IsMine)
+        if (!photonView.IsMine)
         {
             Destroy(GetComponentInChildren<CinemachineVirtualCamera>().gameObject);
             Destroy(GetComponent<BoxCollider2D>());
@@ -95,7 +94,7 @@ public class PlayerController : MonoBehaviour , IPunObservable
             //Destroy(aimDirection.gameObject);
             aimDirection.gameObject.SetActive(false);
         }
-        if (view.IsMine)
+        if (photonView.IsMine)
         {
             playerInputs.Movement.Jump.performed += _ => Jump();
             playerInputs.Movement.Shoot.performed += _ => Attack();
@@ -110,7 +109,7 @@ public class PlayerController : MonoBehaviour , IPunObservable
 
     void Update()
     {
-        if (!view.IsMine)
+        if (!photonView.IsMine)
         {
             return;
         }
@@ -150,9 +149,9 @@ public class PlayerController : MonoBehaviour , IPunObservable
 
     private void AddObservable()
     {
-        if (!view.ObservedComponents.Contains(this))
+        if (!photonView.ObservedComponents.Contains(this))
         {
-            view.ObservedComponents.Add(this);
+            photonView.ObservedComponents.Add(this);
         }
     }
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
@@ -246,26 +245,29 @@ public class PlayerController : MonoBehaviour , IPunObservable
     {
         sr.flipX = !isFacingRight;
     }
-    private float CalculateDamage()
+
+    private float CalculateDamage(out bool isCrit)
     {
         float damageToDeal = (myStats.damage.GetValue());
-        damageToDeal = CalculateCrit(damageToDeal);
+        damageToDeal = CalculateCrit(damageToDeal,out isCrit);
         Debug.Log(damageToDeal);
         return damageToDeal;
     }
 
-    private float CalculateCrit(float damage)
+    private float CalculateCrit(float damage, out bool isCrit)
     {
-
         if (attackCount == (100 / myStats.CritChance.GetValue()))
         {
             float critDamage = (damage * myStats.CritDamageMultiplier.GetValue());
-            Debug.Log("Crited for " + critDamage);
+            isCrit = true;
             attackCount = 0;
+            Debug.Log("Crited for " + critDamage + isCrit);
             return critDamage;
         }
+        isCrit = false;
         return damage;
     }
+
     private void Attack()
     {
         armAnim.SetTrigger("Attack");
@@ -274,10 +276,12 @@ public class PlayerController : MonoBehaviour , IPunObservable
 
         foreach (Collider2D enemy in hitEnemy)
         {
-            if (enemy.gameObject.CompareTag("MeleeEnemy"))
+            if (enemy.gameObject.CompareTag("Enemy"))
             {
                 attackCount++;
-                enemy.GetComponent<CharacterStats>().TakeDamage(CalculateDamage());
+                bool isCrit;
+                float damage = CalculateDamage(out isCrit);
+                enemy.GetComponent<CharacterStats>().TakeDamage(damage,isCrit);
             }
         }
     }
@@ -296,32 +300,7 @@ public class PlayerController : MonoBehaviour , IPunObservable
     private void UpdateHealthUI()
     {
         int tempHealth = currentHealth;
-        for (int i = 0; i < healthImages.Length; i++)
-        {
-            if (tempHealth - 3 >= 0)
-            {
-                healthImages[i].sprite = healthSprites[3];
-                tempHealth -= 3;
-                continue;
-            }
-            if (tempHealth - 2 >= 0)
-            {
-                healthImages[i].sprite = healthSprites[2];
-                tempHealth -= 2;
-                continue;
-            }
-            if (tempHealth - 1 >= 0)
-            {
-                healthImages[i].sprite = healthSprites[1];
-                tempHealth -= 1;
-                continue;
-            }
-            if (tempHealth == 0)
-            {
-                healthImages[i].sprite = healthSprites[0];
-                continue;
-            }
-        }
+        
     }
 
     private void UpdateDashUI()

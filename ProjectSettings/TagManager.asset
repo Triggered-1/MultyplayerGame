@@ -9,6 +9,7 @@ TagManager:
   - GhostEnemy
   - MeleeEnemy
   - Interactable
+  - Enemy
   layers:
   - Default
   - TransparentFX

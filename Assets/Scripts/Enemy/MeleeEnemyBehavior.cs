@@ -12,6 +12,7 @@ public class MeleeEnemyBehavior : MonoBehaviour
     [SerializeField] private int damage;
     
     [SerializeField] private Transform playerPos;
+
     [SerializeField] private Transform shootPos;
     [SerializeField] private LayerMask obstacleLayer;
     [SerializeField] private float rayDistance;
@@ -45,19 +46,19 @@ public class MeleeEnemyBehavior : MonoBehaviour
     {
         anim = GetComponent<Animator>();
         currentHealth = maxHealth;
+        playerPos = GetClosestEnemy(GetPlayerTranforms());
     }
 
     // Update is called once per frame
     void Update()
     {
-        
-        
     }
 
     private void FixedUpdate()
     {
         isGrounded = Physics2D.OverlapCircle((Vector2)transform.position + bottomOffset, checkRadius, groundLayer);
 
+        playerPos = GetClosestEnemy(GetPlayerTranforms());
         Move();
         RaycastHit2D rayHit = Physics2D.Raycast(transform.position, playerPos.position - transform.position,rayDistance,obstacleLayer);
         if (rayHit)
@@ -80,6 +81,35 @@ public class MeleeEnemyBehavior : MonoBehaviour
         Debug.DrawRay(transform.position, playerPos.position - transform.position);
     }
 
+    private Transform[] GetPlayerTranforms()
+    {
+        PlayerController[] playerControllerArray = FindObjectsOfType<PlayerController>();
+        Transform[] playerPositons = new Transform[playerControllerArray.Length];
+
+        for (int i = 0; i < playerControllerArray.Length; i++)
+        {
+            playerPositons[i] = playerControllerArray[i].transform;
+        }
+        return playerPositons;
+    }
+
+    Transform GetClosestEnemy(Transform[] enemies)
+    {
+        Transform bestTarget = null;
+        float closestDistanceSqr = Mathf.Infinity;
+        Vector3 currentPosition = transform.position;
+        foreach (Transform potentialTarget in enemies)
+        {
+            Vector3 directionToTarget = potentialTarget.position - currentPosition;
+            float dSqrToTarget = directionToTarget.sqrMagnitude;
+            if (dSqrToTarget < closestDistanceSqr)
+            {
+                closestDistanceSqr = dSqrToTarget;
+                bestTarget = potentialTarget;
+            }
+        }
+        return bestTarget;
+    }
     private void Move()
     {
         if (EdgeCheck() && canMove)
@@ -100,22 +130,6 @@ public class MeleeEnemyBehavior : MonoBehaviour
         {
             anim.SetBool("Run",false);
         }
-    }
-    
-    public void TakeDamage(int damage)
-    {
-        //currentHealth -= damage;
-        //anim.SetTrigger("GetHit");
-        //if (currentHealth <= 0 )
-        //{
-        //    anim.SetTrigger("Die");
-        //    Die();
-        //}
-    }
-
-    private void Die()
-    {
-        Destroy(gameObject);
     }
 
     private bool EdgeCheck()
