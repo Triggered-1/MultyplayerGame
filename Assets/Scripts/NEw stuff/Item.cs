@@ -5,6 +5,7 @@ public class Item : ScriptableObject
 {
     public string Name = "New Item";
     public Sprite Icon = null;
+    public GameObject PickUpGameObject;
     public bool isDefaultItem = false;
 
     public virtual void Use()

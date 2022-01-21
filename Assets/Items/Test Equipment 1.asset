@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: New Item
   Icon: {fileID: 7482667652216324306, guid: 528edf2a836b3e7489010e5703da772b, type: 3}
+  PickUpGameObject: {fileID: 8775795774045289433, guid: 0f5d89c0e9f625c41976e076b3d0d215, type: 3}
   isDefaultItem: 0
   equipmentSlot: 0
   armorModifier: 3

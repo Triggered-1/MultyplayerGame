@@ -3,21 +3,23 @@ using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 
-public class GameManger : MonoBehaviourPun
+public class ReturnToMenu : MonoBehaviour
 {
-    private void Awake()
-    {
-        //PhotonNetwork.Instantiate("Player", this.transform.position, Quaternion.identity);
-    }
     // Start is called before the first frame update
     void Start()
     {
-        //photonView.RPC("SpawnEnemy", RpcTarget.All);
+        
     }
 
     // Update is called once per frame
     void Update()
     {
+        
+    }
 
+    public void Return()
+    {
+        PhotonNetwork.Disconnect();
+        Application.Quit();
     }
 }

@@ -52,6 +52,9 @@ MonoBehaviour:
   - ExitRoomRPC
   - OpenDoorsRPC
   - TakeDamageRPC
+  - AddRPC
+  - RemoveRPC
+  - ChangeCamConfiner
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

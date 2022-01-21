@@ -15,6 +15,9 @@ EditorBuildSettings:
     path: Assets/Scenes/StartScene.unity
     guid: 14932046e25412f4a8886153d03a7328
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
+    path: Assets/Scenes/DungeonScene.unity
     guid: 2cda990e2423bbf4892e6590ba056729
+  - enabled: 1
+    path: Assets/Scenes/WinScreen.unity
+    guid: fe34e85d9c7c2d34193ef5c2207f5db4
   m_configObjects: {}

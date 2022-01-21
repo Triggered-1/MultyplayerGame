@@ -4,22 +4,6 @@ using UnityEngine;
 
 public class EquipmentManager : MonoBehaviour
 {
-    //#region Singelton
-    //public static EquipmentManager instance;
-
-
-    //private void Awake()
-    //{
-    //    if (instance != null)
-    //    {
-    //        Debug.LogWarning("More than one instance found !");
-    //        return;
-    //    }
-    //    instance = this;
-    //}
-
-    //#endregion
-
     public Equipment[] currentEquipment;
     public delegate void OnEquipmentChanged(Equipment newItem, Equipment oldItem);
     public OnEquipmentChanged onEquipmentChanged;
@@ -30,7 +14,6 @@ public class EquipmentManager : MonoBehaviour
 
     private void Start()
     {
-        //inventory = Inventory.instance;//todo change singelton
         inventory = GetComponent<Inventory>();
 
         int numbSlots = System.Enum.GetNames(typeof(EquipmentSlotEnum)).Length;
@@ -51,7 +34,6 @@ public class EquipmentManager : MonoBehaviour
         if (onEquipmentChanged != null)
         {
             onEquipmentChanged.Invoke(newItem, oldItem);
-            
         }
         if (onEquipmentChangedUI != null)
         {
@@ -74,7 +56,15 @@ public class EquipmentManager : MonoBehaviour
                 onEquipmentChanged.Invoke(null, oldItem);
             }
         }
-        
+
+    }
+
+    public void DropEquipment()
+    {
+        for (int i = 0; i < currentEquipment.Length; i++)
+        {
+            Instantiate(currentEquipment[i].PickUpGameObject, this.transform.position, Quaternion.identity);
+        }
     }
 
     public void UnequipAll()

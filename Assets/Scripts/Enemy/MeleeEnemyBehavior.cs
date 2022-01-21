@@ -10,8 +10,10 @@ public class MeleeEnemyBehavior : MonoBehaviour
     [SerializeField] private LayerMask enemyLayer;
     [SerializeField] private float attackRange;
     [SerializeField] private int damage;
+    private bool canAttack = true;
     
     [SerializeField] private Transform playerPos;
+    private Transform[] enemyTransforms;
 
     [SerializeField] private Transform shootPos;
     [SerializeField] private LayerMask obstacleLayer;
@@ -46,7 +48,8 @@ public class MeleeEnemyBehavior : MonoBehaviour
     {
         anim = GetComponent<Animator>();
         currentHealth = maxHealth;
-        playerPos = GetClosestEnemy(GetPlayerTranforms());
+        enemyTransforms = GetPlayerTranforms();
+        playerPos = GetClosestEnemy(enemyTransforms);
     }
 
     // Update is called once per frame
@@ -58,9 +61,10 @@ public class MeleeEnemyBehavior : MonoBehaviour
     {
         isGrounded = Physics2D.OverlapCircle((Vector2)transform.position + bottomOffset, checkRadius, groundLayer);
 
-        playerPos = GetClosestEnemy(GetPlayerTranforms());
+        playerPos = GetClosestEnemy(enemyTransforms);
         Move();
-        RaycastHit2D rayHit = Physics2D.Raycast(transform.position, playerPos.position - transform.position,rayDistance,obstacleLayer);
+        Vector2 toPlayer = playerPos.position - transform.position;
+        RaycastHit2D rayHit = Physics2D.Raycast(transform.position, toPlayer, rayDistance,obstacleLayer);
         if (rayHit)
         {
             canMove = false;
@@ -71,6 +75,16 @@ public class MeleeEnemyBehavior : MonoBehaviour
             else if (transform.position.x > playerPos.position.x && isFaceingRight)
             {
                 SpriteFlip();
+            }
+            if (canAttack)
+            {
+                toPlayer.x = Mathf.Abs(toPlayer.x);
+                float angle = Vector2.Angle(Vector2.right, toPlayer);
+
+                if (angle < 30f)
+                {
+                    StartCoroutine(AttackSequence());
+                }
             }
         }
         else if (!rayHit)
@@ -167,13 +181,13 @@ public class MeleeEnemyBehavior : MonoBehaviour
             }
         }
     }
-    
-    private void OnTriggerEnter2D(Collider2D other)
+
+    private IEnumerator AttackSequence()
     {
-        if (other.gameObject.CompareTag("Player"))
-        {
-            Attack();
-        }
+        canAttack = false;
+        Attack();
+        yield return new WaitForSeconds(2f);
+        canAttack = true;
     }
     
     private void OnDrawGizmos()

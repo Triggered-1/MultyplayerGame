@@ -8,6 +8,8 @@ public class GhostEnemyBehavior : MonoBehaviour
     private Animator anim;
     
     [SerializeField] private Transform target;
+    private Transform[] enemyTransforms;
+
     [SerializeField] private float speed;
     [SerializeField] private int damage;
     [SerializeField] private int maxHealth;
@@ -21,18 +23,16 @@ public class GhostEnemyBehavior : MonoBehaviour
     {
         currentHealth = maxHealth;
         anim = GetComponent<Animator>();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        enemyTransforms = GetPlayerTranforms();
+        target = GetClosestEnemy(enemyTransforms);
     }
 
     private void FixedUpdate()
     {
+        target = GetClosestEnemy(enemyTransforms);
         transform.position = Vector2.MoveTowards(transform.position, target.position, speed * Time.deltaTime);
-        
+
+
         if (transform.position.x < target.position.x && !isFacingRight)
         {
             SpriteFlip();
@@ -42,23 +42,37 @@ public class GhostEnemyBehavior : MonoBehaviour
             SpriteFlip();
         }
     }
-    
-    public void TakeDamage(int damage)
+
+    private Transform[] GetPlayerTranforms()
     {
-        currentHealth -= damage;
-        anim.SetTrigger("Hit");
-        if (currentHealth <= 0 )
+        PlayerController[] playerControllerArray = FindObjectsOfType<PlayerController>();
+        Transform[] playerPositons = new Transform[playerControllerArray.Length];
+
+        for (int i = 0; i < playerControllerArray.Length; i++)
         {
-            anim.SetTrigger("Die");
-            Die();
+            playerPositons[i] = playerControllerArray[i].transform;
         }
-    } 
-    
-    private void Die()
-    {
-        Destroy(gameObject);
+        return playerPositons;
     }
-    
+
+    Transform GetClosestEnemy(Transform[] enemies)
+    {
+        Transform bestTarget = null;
+        float closestDistanceSqr = Mathf.Infinity;
+        Vector3 currentPosition = transform.position;
+        foreach (Transform potentialTarget in enemies)
+        {
+            Vector3 directionToTarget = potentialTarget.position - currentPosition;
+            float dSqrToTarget = directionToTarget.sqrMagnitude;
+            if (dSqrToTarget < closestDistanceSqr)
+            {
+                closestDistanceSqr = dSqrToTarget;
+                bestTarget = potentialTarget;
+            }
+        }
+        return bestTarget;
+    }
+
     private void SpriteFlip()
     {
         transform.Rotate(bottomOffset,180f,0f);

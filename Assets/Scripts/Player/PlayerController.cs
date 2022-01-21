@@ -13,10 +13,14 @@ using Cinemachine;
 [RequireComponent(typeof(CharacterStats))]
 public class PlayerController : MonoBehaviourPun, IPunObservable
 {
+    private GameObject currentOneWayPlatform;
+    [SerializeField] private BoxCollider2D playerCollider;
+    [SerializeField] private CinemachineConfiner confiner;
     private PlayerInputs playerInputs;
     private Rigidbody2D rb;
     private Animator anim;
     private SpriteRenderer sr;
+    private PlayerOneWayPlatform playerOneWayPlatform;
 
     public GameObject InventoryUI;
     private CharacterStats myStats;
@@ -46,10 +50,7 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
     private Vector3 mousePos;
 
     [Header("Health")]
-    [SerializeField] private int currentHealth;
-    [SerializeField] private int maxHealth;
-    [SerializeField] private Image[] healthImages;
-    [SerializeField] private Sprite[] healthSprites;
+    [SerializeField] private Slider hpSlider;
 
 
     [Header("Ground Check")]
@@ -72,6 +73,8 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
         anim = GetComponent<Animator>();
         sr = GetComponent<SpriteRenderer>();
         inputManager = GetComponent<InputManager>();
+        myStats = GetComponent<CharacterStats>();
+        playerOneWayPlatform = GetComponent<PlayerOneWayPlatform>();
     }
 
     private void OnEnable()
@@ -89,22 +92,24 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
         if (!photonView.IsMine)
         {
             Destroy(GetComponentInChildren<CinemachineVirtualCamera>().gameObject);
-            Destroy(GetComponent<BoxCollider2D>());
+            GetComponent<BoxCollider2D>().isTrigger = true;
             Destroy(rb);
-            //Destroy(aimDirection.gameObject);
+            Destroy(hpSlider.gameObject);
             aimDirection.gameObject.SetActive(false);
         }
+
         if (photonView.IsMine)
         {
             playerInputs.Movement.Jump.performed += _ => Jump();
             playerInputs.Movement.Shoot.performed += _ => Attack();
             playerInputs.Movement.Dash.started += _ => StartCoroutine(Dash());
             playerInputs.Movement.Interact.performed += _ => UseInventory();
+            playerInputs.Movement.PlatformDown.performed += _ => StartCoroutine(DisableCollision());
+            hpSlider.maxValue = myStats.MaxHealth.GetValue();
+            UpdateHealthUI();
         }
-        myStats = GetComponent<CharacterStats>();
         AddObservable();
         currentDashes = maxDashes;
-        currentHealth = maxHealth;
     }
 
     void Update()
@@ -116,15 +121,8 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
         Aim();
         SpriteFlip();
         Move();
-        //UpdateDashUI();
-        //jumpInput = inputManager.OnJumpPressed;
 
         isGrounded = Physics2D.OverlapCircle((Vector2)transform.position + bottomOffset, checkRadius, groundLayer);
-
-        //if (EventSystem.current.IsPointerOverGameObject())
-        //{
-        //    return;
-        //}
 
         if (rb.velocity.y < 0)
         {
@@ -144,7 +142,6 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
         {
             canDash = false;
         }
-
     }
 
     private void AddObservable()
@@ -249,8 +246,7 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
     private float CalculateDamage(out bool isCrit)
     {
         float damageToDeal = (myStats.damage.GetValue());
-        damageToDeal = CalculateCrit(damageToDeal,out isCrit);
-        Debug.Log(damageToDeal);
+        damageToDeal = CalculateCrit(damageToDeal, out isCrit);
         return damageToDeal;
     }
 
@@ -281,17 +277,17 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
                 attackCount++;
                 bool isCrit;
                 float damage = CalculateDamage(out isCrit);
-                enemy.GetComponent<CharacterStats>().TakeDamage(damage,isCrit);
+                enemy.GetComponent<CharacterStats>().TakeDamage(damage, isCrit);
             }
         }
     }
 
     public void TakeDamage(int damage)
     {
-        currentHealth -= damage;
-        anim.SetTrigger("GetHit");
+        myStats.CurrentHealth -= damage;
         UpdateHealthUI();
-        if (currentHealth <= 0)
+        anim.SetTrigger("GetHit");
+        if (myStats.CurrentHealth <= 0)
         {
             Die();
         }
@@ -299,8 +295,7 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
 
     private void UpdateHealthUI()
     {
-        int tempHealth = currentHealth;
-        
+        hpSlider.value = myStats.CurrentHealth;
     }
 
     private void UpdateDashUI()
@@ -322,7 +317,41 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
             }
         }
     }
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("OneWayPlatform"))
+        {
+            currentOneWayPlatform = collision.gameObject;
+        }
+    }
 
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("OneWayPlatform"))
+        {
+            currentOneWayPlatform = null;
+        }
+    }
+
+    public IEnumerator DisableCollision()
+    {
+        Debug.Log("Go Platform");
+
+        if (currentOneWayPlatform != null)
+        {
+            CompositeCollider2D platformCollider = currentOneWayPlatform.GetComponent<CompositeCollider2D>();
+            Debug.Log("Started Corotine");
+            Physics2D.IgnoreCollision(playerCollider, platformCollider);
+            yield return new WaitForSeconds(0.3f);
+            Physics2D.IgnoreCollision(playerCollider, platformCollider, false);
+        }
+
+    }
+
+    public void ChangeCamConfiner(Collider2D boundingBox)
+    {
+        confiner.m_BoundingShape2D = boundingBox;
+    }
 
     private void Die()
     {

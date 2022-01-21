@@ -5,9 +5,13 @@ using Photon.Pun;
 
 public class RoomBehavior : MonoBehaviourPun
 {
+    [SerializeField] private bool dontCloseDoors;
+    [SerializeField] private bool isStartRoom;
     [SerializeField] private Animator[] doorAnimators;
     [SerializeField] private BoxCollider2D roomTrigger;
     [SerializeField] private EnemySpawner[] spawners;
+    [SerializeField] private Collider2D boundingBox;
+    private bool roomIsCleared;
     private int playersInRoom;
     private int enemyCount;
     // Start is called before the first frame update
@@ -15,14 +19,22 @@ public class RoomBehavior : MonoBehaviourPun
     {
         photonView.RPC(nameof(OpenDoorsRPC), RpcTarget.AllBuffered);
         enemyCount = spawners.Length;
+        if (isStartRoom)
+        {
+            GameManager.instance.RoomCleared();
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        
-        if (collision.CompareTag("Player"))
+
+        if (collision.CompareTag("Player") )
         {
-            photonView.RPC(nameof(EnterRoomRPC), RpcTarget.MasterClient);
+            collision.GetComponent<PlayerController>().ChangeCamConfiner(boundingBox);
+            if (!roomIsCleared)
+            {
+                photonView.RPC(nameof(EnterRoomRPC), RpcTarget.MasterClient); 
+            }
         }
     }
     private void OnTriggerExit2D(Collider2D collision)
@@ -37,8 +49,7 @@ public class RoomBehavior : MonoBehaviourPun
     private void EnterRoomRPC()
     {
         playersInRoom++;
-        Debug.Log(playersInRoom);
-        if (playersInRoom == PhotonNetwork.CurrentRoom.PlayerCount)
+        if (playersInRoom == PhotonNetwork.CurrentRoom.PlayerCount && !dontCloseDoors)
         {
             photonView.RPC("CloseDoorsRPC", RpcTarget.AllBuffered);
             StartCoroutine(Spawn());
@@ -48,7 +59,6 @@ public class RoomBehavior : MonoBehaviourPun
     private void ExitRoomRPC()
     {
         playersInRoom--;
-        Debug.Log(playersInRoom);
     }
 
     [PunRPC]
@@ -67,7 +77,6 @@ public class RoomBehavior : MonoBehaviourPun
         {
             anim.SetBool("doorIsOpen", false);
         }
-        Destroy(roomTrigger);
     }
 
 
@@ -78,7 +87,6 @@ public class RoomBehavior : MonoBehaviourPun
         foreach (EnemySpawner spawner in spawners)
         {
             spawner.SpawnEnemy().onDeath += EnemyDied;
-            Debug.Log("Method linked");
         }
     }
 
@@ -88,8 +96,9 @@ public class RoomBehavior : MonoBehaviourPun
         Debug.Log(enemyCount);
         if (enemyCount == 0)
         {
-            Debug.Log("Alle ded");
             photonView.RPC(nameof(OpenDoorsRPC), RpcTarget.AllBuffered);
+            GameManager.instance.RoomCleared();
+            roomIsCleared = true;
         }
     }
 }
